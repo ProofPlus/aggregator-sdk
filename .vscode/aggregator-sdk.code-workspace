@@ -1,0 +1,32 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../orchestrator-contracts"
+		},
+		{
+			"path": "../../commit-boost-client"
+		},
+		{
+			"path": "../../prover-sdk"
+		},
+		{
+			"path": "../../ZKVMs-research"
+		},
+		{
+			"path": "../../hedera-zk-poc"
+		},
+		{
+			"path": "../../risc0-example"
+		}
+	],
+	"settings": {
+		"rust-analyzer.rustfmt.extraArgs": [
+			"+nightly"
+		],
+		"slither.solcPath": "",
+		"slither.hiddenDetectors": []
+	}
+}
