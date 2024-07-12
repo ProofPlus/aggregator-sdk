@@ -12,15 +12,11 @@ pub async fn handle_task_requested_event(
     prover: H160,
     endpoint: String,
     client: &Arc<Client>,
-    // client: &Arc<ProofPlusClient>,
     elf: &Arc<Vec<u8>>,
     inputs: &Arc<Vec<u8>>,
+    prover_type: &Arc<ProverType>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("TaskRequested event received: task_id: {:?}, requester: {:?}, prover: {:?}, endpoint: {:?}", task_id, requester, prover, endpoint);
-
-    // let requester_signature = client.wallet.sign_message(requester.as_bytes()).await?;
-    let prover_type = ProverType::RiscZero;
-
     send_proof_request(
         &client,
         &endpoint,

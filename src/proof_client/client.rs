@@ -14,6 +14,7 @@ use alloy_sol_types::{sol, SolInterface};
 sol! {
     interface ITaskManager {
         function requestTask() external;
+        function slash(bytes32 taskId, bytes32 publicInputsHash, bytes calldata proof) external;
     }
 }
 
@@ -21,7 +22,6 @@ pub struct ProofPlusClient {
     pub tx_sender: TxSender,
     pub client: Client,
     pub prover_type: ProverType,
-    // pub requester_address: ethers::types::H160,
 }
 impl ProofPlusClient {
     pub fn new(
@@ -30,17 +30,12 @@ impl ProofPlusClient {
         private_key: &str,
         contract: &str,
         prover_type: ProverType,
-        // requester_address: ethers::types::H160,
     ) -> Self {
-
-        // tx_sender = TxSender::new(chain_id, rpc_url, private_key, contract)?;
-        // client = Client::new();
 
         Self {
             tx_sender: TxSender::new(chain_id, rpc_url, private_key, contract).unwrap(),
             client: Client::new(),
             prover_type,
-            // requester_address,
         }
     }
 
@@ -64,6 +59,7 @@ impl ProofPlusClient {
         // Start listening for the TaskRequested event in a separate async block
         {
             let client_arc = Arc::new(self.client.clone());
+            let prover_type_arc = Arc::new(self.prover_type.clone());
             let elf_vec = Arc::clone(&elf_vec);
             let inputs_vec = Arc::clone(&inputs_vec);
             let contract_clone = contract.clone();
@@ -75,7 +71,7 @@ impl ProofPlusClient {
 
                 while let Some(Ok(log)) = stream_requested.next().await {
                     let TaskRequested { task_id, requester, prover, endpoint } = log;
-                    if let Err(e) = handle_task_requested_event(task_id, requester, prover, endpoint, &client_arc, &elf_vec, &inputs_vec).await {
+                    if let Err(e) = handle_task_requested_event(task_id, requester, prover, endpoint, &client_arc, &elf_vec, &inputs_vec, &prover_type_arc).await {
                         eprintln!("Error handling TaskRequested event: {:?}", e);
                     }
                 }

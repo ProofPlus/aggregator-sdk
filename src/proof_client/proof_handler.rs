@@ -10,6 +10,8 @@ use std::time::Duration;
 use tokio::time::sleep;
 use serde_json::json; // Ensure this import for json macro
 
+use risc0_zkvm::compute_image_id;
+
 pub async fn send_proof_request(
     client: &Client,
     endpoint: &str,
@@ -20,6 +22,8 @@ pub async fn send_proof_request(
     requester_address: &H160,
     task_id: &str, // Added task_id
 ) -> Result<(), Box<dyn std::error::Error>> {
+    let image_id = compute_image_id(elf).unwrap().to_string();
+
     // Construct the JSON payload
     let payload = json!({
         // "signature": signature,
@@ -27,6 +31,8 @@ pub async fn send_proof_request(
         "inputs": inputs,
         "prover_type": prover_type,
         "requester_address": requester_address,
+        "task_id": task_id,
+        "image_id": image_id
     });
 
     // Send the POST request
