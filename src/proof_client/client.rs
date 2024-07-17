@@ -11,9 +11,11 @@ use crate::proof_client::{handle_task_requested_event, handle_task_finalized_eve
 
 use alloy_sol_types::{sol, SolInterface}; 
 
+use risc0_zkvm::{default_executor, ExecutorEnv};
+
 sol! {
     interface ITaskManager {
-        function requestTask() external;
+        function requestTask(uint256 cycleCount) external returns (bytes32 taskId);
         function slash(bytes32 taskId, bytes32 publicInputsHash, bytes calldata proof) external;
     }
 }
@@ -40,7 +42,18 @@ impl ProofPlusClient {
     }
 
     pub async fn prove(self, elf: &[u8], inputs: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
-        let calldata = ITaskManager::ITaskManagerCalls::requestTask(ITaskManager::requestTaskCall {}).abi_encode();
+        let env = ExecutorEnv::builder()
+            .write_slice(&inputs)
+            .build()
+            .unwrap();
+
+        let session_info = default_executor().execute(env, elf).unwrap();
+        let mut total_cycle_count = 0;
+        for seg in session_info.segments.iter() {
+            total_cycle_count += seg.cycles;
+        }
+
+        let calldata = ITaskManager::ITaskManagerCalls::requestTask(ITaskManager::requestTaskCall {cycleCount: alloy_primitives::U256::from(total_cycle_count)}).abi_encode();
 
         // Send transaction
         self.tx_sender.send(calldata).await?;
